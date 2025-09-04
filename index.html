@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Computer Education - Learn to Code</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --bg-color-light: #f1f5f9;
+            --text-color-light: #0f172a;
+            --primary-color-light: #0c4a6e; /* Changed to a darker, more professional blue */
+            --secondary-color-light: #64748b;
+            --card-bg-light: #ffffff;
+            --border-color-light: #e2e8f0;
+
+            --bg-color-dark: #0f172a;
+            --text-color-dark: #f1f5f9;
+            --primary-color-dark: #0ea5e9;
+            --secondary-color-dark: #94a3b8;
+            --card-bg-dark: #1e293b;
+            --border-color-dark: #334155;
+        }
+
+        .light-theme {
+            --bg-color: var(--bg-color-light);
+            --text-color: var(--text-color-light);
+            --primary-color: var(--primary-color-light);
+            --secondary-color: var(--secondary-color-light);
+            --card-bg: var(--card-bg-light);
+            --border-color: var(--border-color-light);
+        }
+
+        .dark {
+            --bg-color: var(--bg-color-dark);
+            --text-color: var(--text-color-dark);
+            --primary-color: var(--primary-color-dark);
+            --secondary-color: var(--secondary-color-dark);
+            --card-bg: var(--card-bg-dark);
+            --border-color: var(--border-color-dark);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            transition: opacity 0.5s ease-in-out;
+        }
+        
+        .glow-text {
+            text-shadow: 0 0 8px var(--primary-color), 0 0 20px var(--primary-color);
+        }
+
+        .light-theme .glow-text {
+            text-shadow: none;
+        }
+
+        .form-card {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+
+        .form-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+
+        .scroll-reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .tab-btn {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active-tab {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+    </style>
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+</head>
+<body class="antialiased">
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="relative min-h-screen overflow-x-hidden">
+        <header class="absolute top-0 left-0 right-0 z-20 p-4">
+            <div class="container mx-auto flex justify-between items-center">
+                <h1 class="text-2xl sm:text-3xl font-bold tracking-tighter" style="color: var(--primary-color);">Dynamic Computer Education</h1>
+                <div class="flex items-center space-x-4">
+                    <!-- Desktop Navigation -->
+                    <nav class="hidden md:flex items-center space-x-6 text-sm font-medium">
+                        <a href="#home" class="hover:text-sky-400 transition-colors">Home</a>
+                        <a href="#courses-section" class="hover:text-sky-400 transition-colors">Courses</a>
+                        <a href="#about-section" class="hover:text-sky-400 transition-colors">About Us</a>
+                        <a href="#register-section" class="hover:text-sky-400 transition-colors">Register</a>
+                        <a href="#contact" class="hover:text-sky-400 transition-colors">Contact</a>
+                    </nav>
+                     <button id="theme-toggle" class="p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500" style="background-color: var(--card-bg); color: var(--text-color);">
+                        <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                        <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                    </button>
+                    <!-- Mobile Menu Button -->
+                    <button id="mobile-menu-button" class="md:hidden p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-inset focus:ring-sky-500" style="background-color: var(--card-bg); color: var(--text-color);">
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="hidden md:hidden absolute top-16 left-0 right-0 z-30">
+                <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 rounded-lg shadow-lg mx-4" style="background-color: var(--card-bg);">
+                    <a href="#home" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-sky-500 hover:text-white transition-colors mobile-nav-link">Home</a>
+                    <a href="#courses-section" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-sky-500 hover:text-white transition-colors mobile-nav-link">Courses</a>
+                    <a href="#about-section" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-sky-500 hover:text-white transition-colors mobile-nav-link">About Us</a>
+                    <a href="#register-section" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-sky-500 hover:text-white transition-colors mobile-nav-link">Register</a>
+                    <a href="#contact" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-sky-500 hover:text-white transition-colors mobile-nav-link">Contact</a>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <!-- Hero Section -->
+            <section id="home" class="min-h-screen flex items-center justify-center text-center px-4">
+                <div class="z-0">
+                    <h2 class="text-5xl md:text-7xl font-extrabold mb-4 glow-text">Unlock Your Future in Tech</h2>
+                    <p class="text-lg md:text-xl max-w-3xl mx-auto mb-8" style="color: var(--secondary-color);">Join our industry-leading courses in Java, Python, and React. Go from beginner to job-ready with expert-led, hands-on training.</p>
+                    <div class="flex flex-wrap justify-center items-center gap-4">
+                        <a href="#courses-section" class="bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-8 rounded-full text-lg transition-transform transform hover:scale-105">View Our Courses</a>
+                        <a href="#register-section" class="bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-8 rounded-full text-lg transition-transform transform hover:scale-105">Register Now</a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Curriculum Section -->
+            <section id="courses-section" class="py-20 px-4 scroll-reveal">
+                <div class="container mx-auto">
+                    <h2 class="text-4xl md:text-5xl font-bold text-center mb-12 glow-text">Our Core Curriculum</h2>
+                    <div class="w-full max-w-4xl mx-auto rounded-lg p-4 md:p-8" style="background-color: var(--card-bg); border: 1px solid var(--border-color);">
+                        <!-- Tabs -->
+                        <div class="mb-8 flex flex-col sm:flex-row justify-center border-b" style="border-color: var(--border-color);">
+                            <button data-tab="java" class="tab-btn active-tab">Java Full Stack</button>
+                            <button data-tab="python" class="tab-btn">Python Full Stack</button>
+                            <button data-tab="react" class="tab-btn">React Development</button>
+                        </div>
+
+                        <!-- Content Panels -->
+                        <div>
+                            <div id="java-content" class="tab-content grid md:grid-cols-2 gap-8">
+                                <div>
+                                    <h3 class="font-bold text-lg mb-2" style="color: var(--primary-color);">Module 1: Core Java</h3>
+                                    <ul class="list-disc list-inside space-y-1 text-sm">
+                                        <li>Introduction to Java & JVM</li>
+                                        <li>Variables, Data Types, and Operators</li>
+                                        <li>Control Flow Statements</li>
+                                        <li>Object-Oriented Programming (OOP)</li>
+                                        <li>Exception Handling & Collections</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-lg mb-2" style="color: var(--primary-color);">Module 2: Web Fundamentals</h3>
+                                    <ul class="list-disc list-inside space-y-1 text-sm">
+                                        <li>HTML5, CSS3, and Flexbox/Grid</li>
+                                        <li>JavaScript Fundamentals & DOM</li>
+                                        <li>Asynchronous JavaScript (AJAX)</li>
+                                        <li>Responsive Web Design</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-lg mb-2" style="color: var(--primary-color);">Module 3: Advanced Java</h3>
+                                    <ul class="list-disc list-inside space-y-1 text-sm">
+                                        <li>JDBC & Database Connectivity</li>
+                                        <li>Servlets & JSP</li>
+                                        <li>Build Tools: Maven/Gradle</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-lg mb-2" style="color: var(--primary-color);">Module 4: Spring Framework</h3>
+                                    <ul class="list-disc list-inside space-y-1 text-sm">
+                                        <li>Spring Core (IoC, DI)</li>
+                                        <li>Spring MVC & RESTful APIs</li>
+                                        <li>Spring Boot & Microservices</li>
+                                        <li>Spring Data JPA / Hibernate</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div id="python-content" class="tab-content hidden grid md:grid-cols-2 gap-8">
+                                <div>
+                                    <h3 class="font-bold text-lg mb-2" style="color: var(--primary-color);">Module 1: Python Fundamentals</h3>
+                                    <ul class="list-disc list-inside space-y-1 text-sm">
+                                        <li>Syntax, Variables, and Data Types</li>
+                                        <li>Data Structures (Lists, Dicts, etc.)</li>
+                                        <li>Functions and Modules</li>
+                                        <li>Object-Oriented Programming in Python</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-lg mb-2" style="color: var(--primary-color);">Module 2: Web Fundamentals</h3>
+                                    <ul class="list-disc list-inside space-y-1 text-sm">
+                                        <li>HTML5, CSS3, and JavaScript</li>
+                                        <li>Responsive Design Principles</li>
+                                        <li>Version Control with Git</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-lg mb-2" style="color: var(--primary-color);">Module 3: Django Framework</h3>
+                                    <ul class="list-disc list-inside space-y-1 text-sm">
+                                        <li>Models, Views, Templates (MVT)</li>
+                                        <li>Django ORM & Admin Panel</li>
+                                        <li>Building REST APIs with Django Rest Framework</li>
+                                        <li>User Authentication and Permissions</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div id="react-content" class="tab-content hidden grid md:grid-cols-2 gap-8">
+                                <div>
+                                    <h3 class="font-bold text-lg mb-2" style="color: var(--primary-color);">Module 1: Modern JavaScript</h3>
+                                    <ul class="list-disc list-inside space-y-1 text-sm">
+                                        <li>ES6+ Features (Arrow Functions, etc.)</li>
+                                        <li>Asynchronous JavaScript</li>
+                                        <li>NPM and Build Tools (Vite/Webpack)</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-lg mb-2" style="color: var(--primary-color);">Module 2: React Core Concepts</h3>
+                                    <ul class="list-disc list-inside space-y-1 text-sm">
+                                        <li>Components, JSX, and Props</li>
+                                        <li>State and Lifecycle</li>
+                                        <li>Handling Events</li>
+                                        <li>Conditional Rendering & Lists</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-lg mb-2" style="color: var(--primary-color);">Module 3: Advanced React</h3>
+                                    <ul class="list-disc list-inside space-y-1 text-sm">
+                                        <li>React Hooks (useState, useEffect, etc.)</li>
+                                        <li>React Router for Navigation</li>
+                                        <li>State Management (Context API / Redux)</li>
+                                        <li>Fetching Data from APIs</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- About Us Section -->
+            <section id="about-section" class="py-20 px-4 scroll-reveal" style="background-color: var(--card-bg);">
+                <div class="container mx-auto text-center">
+                    <h2 class="text-4xl md:text-5xl font-bold mb-4 glow-text">About Dynamic Computer Education</h2>
+                    <p class="max-w-3xl mx-auto mb-12 text-lg" style="color: var(--secondary-color);">
+                        Founded on the principle of making tech education accessible and practical, we are dedicated to empowering the next generation of software developers. Our curriculum is designed by industry experts to bridge the gap between academic learning and real-world job requirements.
+                    </p>
+                    <div class="grid md:grid-cols-3 gap-8">
+                        <div class="p-6 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-4" style="color: var(--primary-color);" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                            <h3 class="font-bold text-xl mb-2">Expert Instructors</h3>
+                            <p style="color: var(--secondary-color);">Learn from professionals with years of experience in the software industry.</p>
+                        </div>
+                        <div class="p-6 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-4" style="color: var(--primary-color);" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                            <h3 class="font-bold text-xl mb-2">Hands-On Learning</h3>
+                            <p style="color: var(--secondary-color);">Build real-world projects and gain practical skills that employers are looking for.</p>
+                        </div>
+                        <div class="p-6 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-4" style="color: var(--primary-color);" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                            <h3 class="font-bold text-xl mb-2">Career Support</h3>
+                            <p style="color: var(--secondary-color);">From resume building to interview preparation, we're with you every step of the way.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- Contact/Registration Section -->
+            <section class="py-20 px-4 scroll-reveal">
+                 <div class="container mx-auto flex flex-col items-center gap-16">
+                    <!-- Student Registration Form -->
+                    <div id="register-section" class="form-card p-8 rounded-lg border w-full max-w-2xl" style="background-color: rgba(30, 41, 59, 0.5); border-color: var(--border-color);">
+                        <h2 class="text-3xl font-bold text-center mb-2 glow-text">Register Now</h2>
+                        <p class="text-center mb-6" style="color: var(--secondary-color);">Take the first step towards your new career</p>
+                        <form id="registration-form" novalidate>
+                            <!-- Form content -->
+                             <div class="relative mb-4">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: var(--secondary-color);" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg></span>
+                                <input type="text" id="reg-name" placeholder="Full Name" required class="w-full pl-10 p-3 rounded-md border" style="background-color: var(--card-bg); border-color: var(--border-color);">
+                            </div>
+                            <!-- More fields -->
+                            <div class="relative mb-4">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: var(--secondary-color);" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg></span>
+                                <input type="email" id="reg-email" placeholder="Email Address" required class="w-full pl-10 p-3 rounded-md border" style="background-color: var(--card-bg); border-color: var(--border-color);">
+                            </div>
+                             <div class="relative mb-4">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: var(--secondary-color);" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.518.759a11.03 11.03 0 004.28 4.28l.759-1.518a1 1 0 011.06-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" /></svg></span>
+                                <input type="tel" id="reg-phone" placeholder="Phone Number" required class="w-full pl-10 p-3 rounded-md border" style="background-color: var(--card-bg); border-color: var(--border-color);">
+                            </div>
+                            <div class="relative mb-6">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: var(--secondary-color);" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 11-2 0V4H6a1 1 0 11-2 0V4zm12 1a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V7a2 2 0 012-2h2zM5 9a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5z" clip-rule="evenodd" /></svg></span>
+                                <select id="reg-course" required class="w-full pl-10 p-3 rounded-md border appearance-none" style="background-color: var(--card-bg); border-color: var(--border-color);">
+                                    <option value="" disabled selected>Select a Course</option>
+                                    <option value="Java Full Stack">Java Full Stack (includes Spring, Boot, Web)</option>
+                                    <option value="Python Full Stack">Python Full Stack (includes Django, Web)</option>
+                                    <option value="React Development">React Development</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-4 rounded-md transition-all duration-300">Register Now</button>
+                            <div id="reg-feedback" class="text-center mt-4"></div>
+                        </form>
+                    </div>
+                    <!-- Ask a Query Form -->
+                    <div id="contact" class="form-card p-8 rounded-lg border w-full max-w-2xl" style="background-color: rgba(30, 41, 59, 0.5); border-color: var(--border-color);">
+                        <h2 class="text-3xl font-bold text-center mb-2 glow-text">Ask a Query</h2>
+                        <p class="text-center mb-6" style="color: var(--secondary-color);">Have questions? We're here to help!</p>
+                        <form id="query-form" novalidate>
+                            <!-- Form content -->
+                            <div class="relative mb-4">
+                               <span class="absolute inset-y-0 left-0 flex items-center pl-3"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: var(--secondary-color);" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg></span>
+                                <input type="text" id="query-name" placeholder="Your Name" required class="w-full pl-10 p-3 rounded-md border" style="background-color: var(--card-bg); border-color: var(--border-color);">
+                            </div>
+                            <div class="relative mb-4">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: var(--secondary-color);" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 S0 002-2V8.118z" /></svg></span>
+                                <input type="email" id="query-email" placeholder="Your Email" required class="w-full pl-10 p-3 rounded-md border" style="background-color: var(--card-bg); border-color: var(--border-color);">
+                            </div>
+                            <div class="relative mb-6">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 pt-3"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: var(--secondary-color);" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" /></svg></span>
+                                <textarea id="query-message" placeholder="Your Question..." required rows="4" class="w-full pl-10 p-3 rounded-md border" style="background-color: var(--card-bg); border-color: var(--border-color);"></textarea>
+                            </div>
+                            <button type="submit" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-4 rounded-md transition-all duration-300">Submit Query</button>
+                             <div id="query-feedback" class="text-center mt-4"></div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <footer class="text-center py-8" style="background-color: var(--bg-color); border-top: 1px solid var(--border-color);">
+            <p>&copy; 2025 Dynamic Computer Education. All Rights Reserved.</p>
+            <p class="text-sm mt-2">Designed to Empower Your Future.</p>
+        </footer>
+    </div>
+
+    <!-- Scroll to Top Button -->
+    <button id="scroll-to-top" class="fixed bottom-5 right-5 p-3 rounded-full bg-sky-500 text-white shadow-lg hover:bg-sky-600 transition-all duration-300 opacity-0 transform translate-y-4 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 z-50">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+        </svg>
+    </button>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    
+        // IMPORTANT: Add your Firebase project's configuration here
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+    
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+    
+        // --- 3D Background ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        const particlesGeometry = new THREE.BufferGeometry;
+        const particlesCnt = 5000;
+        const posArray = new Float32Array(particlesCnt * 3);
+        for (let i = 0; i < particlesCnt * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 5;
+        }
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMaterial = new THREE.PointsMaterial({ size: 0.005, transparent: true });
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+        camera.position.z = 2;
+
+        window.addEventListener('resize', () => {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        });
+
+        const clock = new THREE.Clock();
+        const animate = () => {
+            const elapsedTime = clock.getElapsedTime();
+            particlesMesh.rotation.y = elapsedTime * 0.1;
+            renderer.render(scene, camera);
+            window.requestAnimationFrame(animate);
+        };
+        animate();
+
+        // --- Theme Toggle ---
+        const themeToggle = document.getElementById('theme-toggle');
+        const sunIcon = document.getElementById('sun-icon');
+        const moonIcon = document.getElementById('moon-icon');
+        const html = document.documentElement;
+
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                html.classList.add('dark');
+                html.classList.remove('light-theme');
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+                particlesMaterial.color.set(0x0ea5e9); // sky blue
+            } else {
+                html.classList.remove('dark');
+                html.classList.add('light-theme');
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+                particlesMaterial.color.set(0x0f172a); // slate
+            }
+        }
+        
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        applyTheme(savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.classList.contains('dark') ? 'dark' : 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('theme', newTheme);
+            applyTheme(newTheme);
+        });
+        
+        // --- Scroll Reveal ---
+        const scrollElements = document.querySelectorAll('.scroll-reveal');
+        const elementInView = (el, dividend = 1) => {
+            const elementTop = el.getBoundingClientRect().top;
+            return (elementTop <= (window.innerHeight || document.documentElement.clientHeight) / dividend);
+        };
+        const displayScrollElement = (element) => element.classList.add('visible');
+        const handleScrollAnimation = () => {
+            scrollElements.forEach((el) => {
+                if (elementInView(el, 1.25)) {
+                    displayScrollElement(el);
+                }
+            });
+        };
+        window.addEventListener('scroll', handleScrollAnimation);
+        handleScrollAnimation(); // Initial check
+
+        // --- Form Handling ---
+        function setupFormValidation(formId, feedbackId, collectionName) {
+            const form = document.getElementById(formId);
+            const feedbackEl = document.getElementById(feedbackId);
+            
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!form.checkValidity()) {
+                    feedbackEl.textContent = 'Please fill out all required fields correctly.';
+                    feedbackEl.className = 'text-red-500';
+                    return;
+                }
+
+                const button = form.querySelector('button[type="submit"]');
+                button.disabled = true;
+                button.textContent = 'Submitting...';
+                
+                // Manually get values for our specific form fields
+                const submissionData = {};
+                if (formId === 'registration-form') {
+                    submissionData.fullName = form.querySelector('#reg-name').value;
+                    submissionData.email = form.querySelector('#reg-email').value;
+                    submissionData.phone = form.querySelector('#reg-phone').value;
+                    submissionData.course = form.querySelector('#reg-course').value;
+                    submissionData.status = "New"; // Default status
+                } else {
+                    submissionData.fullName = form.querySelector('#query-name').value;
+                    submissionData.email = form.querySelector('#query-email').value;
+                    submissionData.message = form.querySelector('#query-message').value;
+                }
+                submissionData.timestamp = serverTimestamp();
+
+                try {
+                    await addDoc(collection(db, collectionName), submissionData);
+                    feedbackEl.textContent = 'Thank you! Your submission has been received.';
+                    feedbackEl.className = 'text-green-500';
+                    form.reset();
+                } catch (error) {
+                    console.error("Error adding document: ", error);
+                    feedbackEl.textContent = 'An error occurred. Please try again.';
+                    feedbackEl.className = 'text-red-500';
+                } finally {
+                    button.disabled = false;
+                     button.textContent = formId === 'registration-form' ? 'Register Now' : 'Submit Query';
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setupFormValidation('registration-form', 'reg-feedback', 'registrations');
+            setupFormValidation('query-form', 'query-feedback', 'queries');
+
+            // --- Tab Handling ---
+            const tabs = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetId = tab.dataset.tab + '-content';
+                    const targetContent = document.getElementById(targetId);
+
+                    tabs.forEach(t => t.classList.remove('active-tab'));
+                    tab.classList.add('active-tab');
+
+                    tabContents.forEach(content => content.classList.add('hidden'));
+                    if (targetContent) {
+                        targetContent.classList.remove('hidden');
+                    }
+                });
+            });
+
+            // --- Scroll to Top Button ---
+            const scrollToTopBtn = document.getElementById('scroll-to-top');
+
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 300) {
+                    scrollToTopBtn.classList.remove('opacity-0', 'translate-y-4');
+                } else {
+                    scrollToTopBtn.classList.add('opacity-0', 'translate-y-4');
+                }
+            });
+
+            scrollToTopBtn.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+            
+            // --- Mobile Menu Toggle ---
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            // Close mobile menu when a link is clicked
+            mobileNavLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+
