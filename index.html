@@ -378,16 +378,17 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     
-        // IMPORTANT: Add your Firebase project's configuration here
+        // Your web app's Firebase configuration
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyB2O-1BpSWdATCVPNXkuJ3vWv7FV9zOTK4",
+            authDomain: "dynamic-education-website.firebaseapp.com",
+            projectId: "dynamic-education-website",
+            storageBucket: "dynamic-education-website.appspot.com",
+            messagingSenderId: "1040334692678",
+            appId: "1:1040334692678:web:8e2a020035965a9d8e0547"
         };
-    
+
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
     
@@ -487,17 +488,17 @@
                 }
 
                 const button = form.querySelector('button[type="submit"]');
+                const originalButtonText = button.textContent;
                 button.disabled = true;
                 button.textContent = 'Submitting...';
                 
-                // Manually get values for our specific form fields
                 const submissionData = {};
                 if (formId === 'registration-form') {
                     submissionData.fullName = form.querySelector('#reg-name').value;
                     submissionData.email = form.querySelector('#reg-email').value;
                     submissionData.phone = form.querySelector('#reg-phone').value;
                     submissionData.course = form.querySelector('#reg-course').value;
-                    submissionData.status = "New"; // Default status
+                    submissionData.status = "New";
                 } else {
                     submissionData.fullName = form.querySelector('#query-name').value;
                     submissionData.email = form.querySelector('#query-email').value;
@@ -516,7 +517,7 @@
                     feedbackEl.className = 'text-red-500';
                 } finally {
                     button.disabled = false;
-                     button.textContent = formId === 'registration-form' ? 'Register Now' : 'Submit Query';
+                    button.textContent = originalButtonText;
                 }
             });
         }
